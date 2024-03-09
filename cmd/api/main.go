@@ -1,6 +1,7 @@
 package main
 
 import (
+	"books_api/internal/driver"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,6 +16,7 @@ type application struct {
 	config   config
 	infoLog  *log.Logger
 	errorLog *log.Logger
+	db       *driver.DB
 }
 
 func main() {
@@ -24,13 +26,20 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	dsn := "host=localhost port=5432 user=postgres password=admin dbname=bookstore sslmode=disable timezone=UTC connect_timeout=5"
+	db, err := driver.ConnectPostgresSql(dsn)
+	if err != nil {
+		log.Fatal("Cannot connect to databse!")
+	}
+
 	app := &application{
 		config:   cfg,
 		infoLog:  infoLog,
 		errorLog: errorLog,
+		db:       db,
 	}
 
-	err := app.serve()
+	err = app.serve()
 	if err != nil {
 		log.Fatal(err)
 	}
