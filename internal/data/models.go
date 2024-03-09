@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/base32"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -178,7 +179,7 @@ func (u *User) Insert(user User) (int, error) {
 	}
 
 	var newID int
-	stmt := `ìnsert into users (email, first_name, last_name, password, created_at, updated_at)
+	stmt := `insert into users (email, first_name, last_name, password, created_at, updated_at)
 		values ($1, $2, $3, $4, $5, $6) returning id
 	`
 
@@ -252,7 +253,7 @@ func (t *Token) GetByToken(plainText string) (*Token, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, user_id, email, token, token_hash, created_at, updated_at, expity from tokens where token = $1`
+	query := `select id, user_id, email, token, token_hash, created_at, updated_at, expiry from tokens where token = $1`
 
 	var token Token
 	row := db.QueryRowContext(ctx, query, plainText)
@@ -260,6 +261,7 @@ func (t *Token) GetByToken(plainText string) (*Token, error) {
 		&token.ID,
 		&token.UserID,
 		&token.Email,
+		&token.Token,
 		&token.TokenHash,
 		&token.CreatedAt,
 		&token.UpdatedAt,
@@ -374,6 +376,7 @@ func (t *Token) Insert(token Token, u User) error {
 	_, err = db.ExecContext(ctx, stmt,
 		token.UserID,
 		token.Email,
+		token.Token,
 		token.TokenHash,
 		time.Now(),
 		time.Now(),
@@ -406,6 +409,7 @@ func (t *Token) DeleteByToken(plainText string) error {
 func (t *Token) ValidToken(plainText string) (bool, error) {
 	token, err := t.GetByToken(plainText)
 	if err != nil {
+		log.Println("ERROR", err)
 		return false, errors.New("no matching token found")
 	}
 
