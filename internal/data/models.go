@@ -2,8 +2,13 @@ package data
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base32"
 	"errors"
+	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -291,4 +296,59 @@ func (t *Token) GetUserForToken(token Token) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+// GenerateToken generate a token for the user
+func (t *Token) GenerateToken(userID int, ttl time.Duration) (*Token, error) {
+	token := &Token{
+		UserID: userID,
+		Expiry: time.Now().Add(ttl),
+	}
+
+	randomBytes := make([]byte, 16)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	token.Token = base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(randomBytes)
+	hash := sha256.Sum256([]byte(token.Token))
+	token.TokenHash = hash[:]
+
+	return token, nil
+}
+
+// AuthenticateToken authenticate the user token
+func (t *Token) AuthenticateToken(r *http.Request) (*User, error) {
+	authorizationHeader := r.Header.Get("Authorization")
+	if authorizationHeader == "" {
+		return nil, errors.New("no authorization header received")
+	}
+
+	headersPart := strings.Split(authorizationHeader, " ")
+	if len(headersPart) != 2 || headersPart[0] != "Bearer" {
+		return nil, errors.New("no valid authorization header received")
+	}
+
+	token := headersPart[1]
+
+	if len(token) != 26 {
+		return nil, errors.New("token wrong size")
+	}
+
+	tkn, err := t.GetByToken(token)
+	if err != nil {
+		return nil, errors.New("no matching token found")
+	}
+
+	if tkn.Expiry.Before(time.Now()) {
+		return nil, errors.New("expired token")
+	}
+
+	user, err := t.GetUserForToken(*tkn)
+	if err != nil {
+		return nil, errors.New("no matching user found")
+	}
+
+	return user, nil
 }
