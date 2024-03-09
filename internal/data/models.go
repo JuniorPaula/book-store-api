@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const dbTimeout = time.Second * 3
@@ -157,6 +159,36 @@ func (u *User) Delete() error {
 	}
 
 	return nil
+}
+
+// Insert inserts the user into the database
+func (u *User) Insert(user User) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
+	if err != nil {
+		return 0, err
+	}
+
+	var newID int
+	stmt := `ìnsert into users (email, first_name, last_name, password, created_at, updated_at)
+		values ($1, $2, $3, $4, $5, $6) returning id
+	`
+
+	err = db.QueryRowContext(ctx, stmt,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		hashedPassword,
+		time.Now(),
+		time.Now(),
+	).Scan(&newID)
+	if err != nil {
+		return 0, err
+	}
+
+	return newID, nil
 }
 
 type Token struct {
