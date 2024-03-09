@@ -33,13 +33,13 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := app.models.User.GetByEmail(creds.UserName)
 	if err != nil {
-		app.errorJSON(w, errors.New("invalid credentials"))
+		app.errorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
 		return
 	}
 
 	validPassword, err := user.PasswordMatches(creds.Password)
 	if err != nil || !validPassword {
-		app.errorJSON(w, errors.New("invalid credentials"))
+		app.errorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
 		return
 	}
 
