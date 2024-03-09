@@ -1,6 +1,7 @@
 package main
 
 import (
+	"books_api/internal/data"
 	"books_api/internal/driver"
 	"fmt"
 	"log"
@@ -17,6 +18,7 @@ type application struct {
 	infoLog  *log.Logger
 	errorLog *log.Logger
 	db       *driver.DB
+	models   data.Models
 }
 
 func main() {
@@ -38,6 +40,7 @@ func main() {
 		infoLog:  infoLog,
 		errorLog: errorLog,
 		db:       db,
+		models:   data.New(db.SQL),
 	}
 
 	err = app.serve()
