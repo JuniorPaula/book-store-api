@@ -1,6 +1,7 @@
 package main
 
 import (
+	"books_api/internal/data"
 	"errors"
 	"net/http"
 	"time"
@@ -90,4 +91,22 @@ func (app *application) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
+}
+
+// AllUsers get the users from the database and return them
+func (app *application) AllUsers(w http.ResponseWriter, r *http.Request) {
+	var users data.User
+	all, err := users.GetAll()
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: "success",
+		Data:    envelope{"users": all},
+	}
+
+	app.writeJSON(w, http.StatusOK, payload)
 }
