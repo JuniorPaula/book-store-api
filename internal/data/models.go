@@ -168,6 +168,21 @@ func (u *User) Delete() error {
 	return nil
 }
 
+// DeleteByID delete an user from the database by user id.
+func (u *User) DeleteByID(ID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `delete from users where id = $1`
+
+	_, err := db.QueryContext(ctx, stmt, ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Insert inserts the user into the database
 func (u *User) Insert(user User) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
