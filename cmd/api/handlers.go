@@ -289,3 +289,21 @@ func (app *application) AllBooks(w http.ResponseWriter, r *http.Request) {
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
+
+// OneBook its a handler, return an one book by filtering slug
+func (app *application) OneBook(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+
+	book, err := app.models.Book.GetOneBySlug(slug)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "success"
+	payload.Data = envelope{"book": book}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+}
