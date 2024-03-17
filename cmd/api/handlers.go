@@ -272,3 +272,20 @@ func (app *application) ValidateToken(w http.ResponseWriter, r *http.Request) {
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
+
+// AllBooks its a Handler and return all books from the database
+func (app *application) AllBooks(w http.ResponseWriter, r *http.Request) {
+	books, err := app.models.Book.GetAll()
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: "success",
+		Data:    envelope{"books": books},
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+}
