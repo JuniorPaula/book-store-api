@@ -412,3 +412,25 @@ func (app *application) EditBook(w http.ResponseWriter, r *http.Request) {
 
 	_ = app.writeJSON(w, http.StatusAccepted, payload)
 }
+
+// BookByID its a handler to get one book by id
+func (app *application) BookByID(w http.ResponseWriter, r *http.Request) {
+	bookID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	book, err := app.models.Book.GetOneById(bookID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "success"
+	payload.Data = book
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+}
