@@ -434,3 +434,28 @@ func (app *application) BookByID(w http.ResponseWriter, r *http.Request) {
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
+
+// DeleteBook is a handler to delete a book
+func (app *application) DeleteBook(w http.ResponseWriter, r *http.Request) {
+	var requestPaylod struct {
+		ID int `json:"id"`
+	}
+
+	err := app.readJSON(w, r, &requestPaylod)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	err = app.models.Book.DeleteByID(requestPaylod.ID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "Book deleted successfuly"
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+}
