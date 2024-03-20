@@ -33,11 +33,15 @@ func (app *application) routes() http.Handler {
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(app.AuthTokenMiddleware)
 
+		// admin user routes
 		mux.Post("/users/all", app.AllUsers)
 		mux.Post("/users/save", app.EditUser)
 		mux.Post("/users/get/{id}", app.GetUser)
 		mux.Post("/users/delete", app.DeleteUser)
 		mux.Post("/log-user-out/{id}", app.LogUserOutAndSetIncative)
+
+		// admin books routes
+		mux.Post("/authors/all", app.AuthorsAll)
 	})
 
 	// static files
