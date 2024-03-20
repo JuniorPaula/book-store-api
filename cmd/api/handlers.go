@@ -355,7 +355,7 @@ func (app *application) EditBook(w http.ResponseWriter, r *http.Request) {
 		PublicationYear int    `json:"publication_year"`
 		Description     string `json:"description"`
 		CoverBase64     string `json:"cover"`
-		GenreIDs        []int  `json:"genre_ids"`
+		GenreIDs        []int  `json:"genres_ids"`
 	}
 
 	err := app.readJSON(w, r, &requestPayload)
@@ -387,21 +387,21 @@ func (app *application) EditBook(w http.ResponseWriter, r *http.Request) {
 			app.errorJSON(w, err)
 			return
 		}
+	}
 
-		if book.ID == 0 {
-			// adding a book
-			_, err := app.models.Book.Insert(book)
-			if err != nil {
-				app.errorJSON(w, err)
-				return
-			}
-		} else {
-			// update a book
-			err := book.Update()
-			if err != nil {
-				app.errorJSON(w, err)
-				return
-			}
+	if book.ID == 0 {
+		// adding a book
+		_, err := app.models.Book.Insert(book)
+		if err != nil {
+			app.errorJSON(w, err)
+			return
+		}
+	} else {
+		// update a book
+		err := book.Update()
+		if err != nil {
+			app.errorJSON(w, err)
+			return
 		}
 	}
 
